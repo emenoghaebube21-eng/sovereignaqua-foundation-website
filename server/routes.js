@@ -42,10 +42,6 @@ function protectedPlaceholder() {
 route("GET", "/api/auth/me", protectedPlaceholder(), { auth: true });
 route("GET", "/api/membership/me", protectedPlaceholder(), { auth: true });
 route("GET", "/api/documents", protectedPlaceholder(), { auth: true });
-route("GET", "/api/projects", async () => ({
-  status: 501,
-  body: { error: NOT_IMPLEMENTED }
-}));
 route("POST", "/api/membership/applications", async ({ req }) => {
   const auth = requireAuthentication(req);
   if (!auth.ok) return { status: auth.status, body: { error: auth.error } };
