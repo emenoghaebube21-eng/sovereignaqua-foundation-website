@@ -1,3 +1,5 @@
+import { authenticateRequest, requestFingerprint } from "./auth.js";
+
 export function getBearerToken(req) {
   const value = req.headers.authorization;
   if (typeof value !== "string") return null;
@@ -10,26 +12,9 @@ export function authenticationConfigured() {
 }
 
 export function requireAuthentication(req) {
-  if (!authenticationConfigured()) {
-    return {
-      ok: false,
-      status: 503,
-      error: "authentication_not_configured"
-    };
+  const result = authenticateRequest(req);
+  if (!result.ok) {
+    return { ...result, requestFingerprint: requestFingerprint(req) };
   }
-
-  const token = getBearerToken(req);
-  if (!token) {
-    return {
-      ok: false,
-      status: 401,
-      error: "authentication_required"
-    };
-  }
-
-  return {
-    ok: false,
-    status: 501,
-    error: "token_verification_not_implemented"
-  };
+  return result;
 }
