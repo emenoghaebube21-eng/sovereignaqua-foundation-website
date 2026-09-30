@@ -37,3 +37,8 @@ jobs:
           for f in index.html global.html global-directory.html donate.html apply.html login.html dashboard.html portal.html admin.html command-center.html; do
             test -f "$f"
           done
+
+      - name: Run API tests
+        working-directory: server
+        run: |
+          node --test
