@@ -1,8 +1,18 @@
 {
-  "name":"sovereignaqua-global-institute-api",
-  "version":"1.0.0",
-  "private":true,
-  "type":"module",
-  "scripts":{"start":"node index.js","health":"node index.js --health","test":"node --test"},
-  "engines":{"node":">=20"}
+  "name": "sovereignaqua-global-institute-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "health": "node index.js --health",
+    "test": "node --test",
+    "migrate": "node migrate.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  }
 }
