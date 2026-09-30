@@ -49,6 +49,7 @@ export function createServer(){
 
   if(req.method==="GET" && req.url==="/api/health"){
     return checkDatabase()
+      .catch(() => ({ configured: Boolean(process.env.DATABASE_URL), reachable: false }))
       .then(database => json(res,200,{
       status:"ok",
       service:"sovereignaqua-global-institute-api",
@@ -57,6 +58,7 @@ export function createServer(){
         appBaseUrlConfigured:Boolean(appBaseUrl),
         productionDatabaseConfigured:Boolean(process.env.DATABASE_URL),
         authConfigured:Boolean(process.env.AUTH_ISSUER),
+        databaseReachable:database.reachable,
         missingRequired:missing
       }
     },id));
