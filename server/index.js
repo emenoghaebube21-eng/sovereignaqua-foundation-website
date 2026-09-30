@@ -13,7 +13,8 @@ const migrationFiles=[
 "002_entity_network.sql",
 "003_global_network.sql",
 "004_funding.sql",
-"005_global_operations.sql"
+"005_global_operations.sql",
+"006_access_control.sql"
 ];
 
 function json(res,status,payload,requestId){
