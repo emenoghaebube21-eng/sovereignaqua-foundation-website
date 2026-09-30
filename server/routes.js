@@ -1,6 +1,7 @@
 import { listRoutes, matchRoute, route } from "./router.js";
 import { parseJsonBody } from "./request.js";
 import { requireAuthentication } from "./security.js";
+import { requirePermission } from "./authorization.js";
 import {
   listPublicOrganizations,
   listPublicProjects,
@@ -31,17 +32,19 @@ route("POST", "/api/partnerships/requests", protectedPlaceholder(), { auth: true
 route("GET", "/api/funding/me", protectedPlaceholder(), { auth: true });
 
 
-function protectedPlaceholder() {
+function protectedPlaceholder(permission = null) {
   return async ({ req }) => {
     const auth = requireAuthentication(req);
     if (!auth.ok) return { status: auth.status, body: { error: auth.error } };
+    const authorized = permission ? requirePermission(auth, permission) : auth;
+    if (!authorized.ok) return { status: authorized.status, body: { error: authorized.error } };
     return { status: 501, body: { error: NOT_IMPLEMENTED } };
   };
 }
 
-route("GET", "/api/auth/me", protectedPlaceholder(), { auth: true });
-route("GET", "/api/membership/me", protectedPlaceholder(), { auth: true });
-route("GET", "/api/documents", protectedPlaceholder(), { auth: true });
+route("GET", "/api/auth/me", protectedPlaceholder("member.profile.read"), { auth: true });
+route("GET", "/api/membership/me", protectedPlaceholder("member.profile.read"), { auth: true });
+route("GET", "/api/documents", protectedPlaceholder("document.read_member"), { auth: true });
 route("POST", "/api/membership/applications", async ({ req }) => {
   const auth = requireAuthentication(req);
   if (!auth.ok) return { status: auth.status, body: { error: auth.error } };
@@ -49,9 +52,9 @@ route("POST", "/api/membership/applications", async ({ req }) => {
   return { status: 501, body: { error: NOT_IMPLEMENTED } };
 }, { auth: true });
 
-route("POST", "/api/requests", protectedPlaceholder(), { auth: true });
-route("GET", "/api/admin/membership/applications", protectedPlaceholder(), { auth: true });
-route("GET", "/api/admin/requests", protectedPlaceholder(), { auth: true });
+route("POST", "/api/requests", protectedPlaceholder("request.create"), { auth: true });
+route("GET", "/api/admin/membership/applications", protectedPlaceholder("membership.application.review"), { auth: true });
+route("GET", "/api/admin/requests", protectedPlaceholder("request.manage"), { auth: true });
 
 export function getApiRoute(method, pathname) {
   return matchRoute(method, pathname);
