@@ -1,0 +1,95 @@
+openapi: 3.0.3
+info:
+  title: SovereignAqua Imperium-Habour PMA API
+  version: 1.0.0
+  description: Backend contract for membership, documents, projects, requests and governance.
+servers:
+  - url: https://www.sovereignaquaresearchanddevelopment.online/api
+paths:
+  /auth/me:
+    get:
+      summary: Return authenticated user
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Authenticated user }
+        "401": { description: Authentication required }
+  /membership/applications:
+    post:
+      summary: Submit membership application
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MembershipApplication" }
+      responses:
+        "201": { description: Application created }
+        "400": { description: Invalid application }
+        "401": { description: Authentication required }
+  /membership/me:
+    get:
+      summary: Get current member record
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Member record }
+        "401": { description: Authentication required }
+  /documents:
+    get:
+      summary: List documents available to the authenticated user
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Document list }
+        "401": { description: Authentication required }
+  /projects:
+    get:
+      summary: List visible projects
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Project list }
+  /requests:
+    post:
+      summary: Create member request
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Request" }
+      responses:
+        "201": { description: Request created }
+  /admin/membership/applications:
+    get:
+      summary: List applications for authorized administrators
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Application queue }
+        "403": { description: Administrator access required }
+  /admin/requests:
+    get:
+      summary: List administrative requests
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Request queue }
+        "403": { description: Administrator access required }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    MembershipApplication:
+      type: object
+      required: [name, email, jurisdiction, interest_area, purpose]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 200 }
+        email: { type: string, format: email }
+        jurisdiction: { type: string, minLength: 2, maxLength: 120 }
+        interest_area: { type: string, maxLength: 120 }
+        purpose: { type: string, minLength: 20, maxLength: 5000 }
+    Request:
+      type: object
+      required: [request_type, subject, description]
+      properties:
+        request_type: { type: string, maxLength: 100 }
+        subject: { type: string, minLength: 3, maxLength: 200 }
+        description: { type: string, minLength: 5, maxLength: 5000 }
