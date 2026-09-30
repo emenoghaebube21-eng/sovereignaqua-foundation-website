@@ -62,3 +62,10 @@ and (
 on conflict do nothing;
 
 create index if not exists idx_role_permissions_permission on role_permissions(permission_id);
+
+-- Super administrators receive the complete permission catalog.
+insert into role_permissions(role_id, permission_id)
+select r.id, p.id
+from roles r cross join permissions p
+where r.name = 'super_administrator'
+on conflict do nothing;
