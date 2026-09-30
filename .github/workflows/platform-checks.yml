@@ -38,7 +38,10 @@ jobs:
             test -f "$f"
           done
 
+      - name: Install API dependencies
+        working-directory: server
+        run: npm install
+
       - name: Run API tests
         working-directory: server
-        run: |
-          node --test
+        run: node --test
