@@ -1,5 +1,6 @@
 import http from "node:http";
 import crypto from "node:crypto";
+import { getApiRoute, apiRouteIndex } from "./routes.js";
 
 const port=Number(process.env.PORT||3000);
 const appBaseUrl=process.env.APP_BASE_URL||"";
@@ -39,7 +40,8 @@ function requestId(req){
   return typeof supplied==="string" && supplied.length<=120 ? supplied : crypto.randomUUID();
 }
 
-const server=http.createServer((req,res)=>{
+export function createServer(){
+  return http.createServer((req,res)=>{
   const id=requestId(req);
   cors(req,res);
   if(req.method==="OPTIONS") return json(res,204,{},id);
@@ -66,6 +68,10 @@ const server=http.createServer((req,res)=>{
     },id);
   }
 
+  if(req.method==="GET" && req.url==="/api/routes"){
+    return json(res,200,{routes:apiRouteIndex()},id);
+  }
+
   if(req.method==="GET" && req.url==="/api/migrations"){
     return json(res,200,{
       status:"migration_plan",
@@ -76,8 +82,26 @@ const server=http.createServer((req,res)=>{
     },id);
   }
 
+  const pathname=(req.url||"").split("?")[0];
+  const apiRoute=getApiRoute(req.method,pathname);
+  if(apiRoute){
+    Promise.resolve(apiRoute.handler({req,res,requestId:id}))
+      .then(result=>{
+        if(res.writableEnded) return;
+        const status=result?.status||200;
+        return json(res,status,result?.body||{},id);
+      })
+      .catch(error=>{
+        if(res.writableEnded) return;
+        const status=Number(error?.statusCode)||500;
+        return json(res,status,{error:status===500?"internal_error":error.message},id);
+      });
+    return;
+  }
+
   return json(res,404,{error:"not_found",requestId:id},id);
-});
+  });
+}
 
 if(process.argv.includes("--health")){
   if(missing.length){
@@ -88,4 +112,6 @@ if(process.argv.includes("--health")){
   process.exit(0);
 }
 
-server.listen(port,()=>console.log("API listening on port "+port));
+if(process.env.NODE_ENV!=="test"){
+  createServer().listen(port,()=>console.log("API listening on port "+port));
+}
