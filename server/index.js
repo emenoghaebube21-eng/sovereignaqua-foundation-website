@@ -1,6 +1,7 @@
 import http from "node:http";
 import crypto from "node:crypto";
 import { getApiRoute, apiRouteIndex } from "./routes.js";
+import { checkDatabase } from "./db.js";
 
 const port=Number(process.env.PORT||3000);
 const appBaseUrl=process.env.APP_BASE_URL||"";
@@ -47,7 +48,8 @@ export function createServer(){
   if(req.method==="OPTIONS") return json(res,204,{},id);
 
   if(req.method==="GET" && req.url==="/api/health"){
-    return json(res,200,{
+    return checkDatabase()
+      .then(database => json(res,200,{
       status:"ok",
       service:"sovereignaqua-global-institute-api",
       version:"1.0.0",
@@ -57,7 +59,7 @@ export function createServer(){
         authConfigured:Boolean(process.env.AUTH_ISSUER),
         missingRequired:missing
       }
-    },id);
+    },id));
   }
 
   if(req.method==="GET" && req.url==="/api"){
