@@ -23,6 +23,7 @@ jobs:
           test -f db/003_global_network.sql
           test -f db/004_funding.sql
           test -f db/005_global_operations.sql
+          test -f db/006_access_control.sql
           test -f .env.example
       - name: Check for obvious credential patterns
         shell: bash
