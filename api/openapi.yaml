@@ -13,6 +13,78 @@ paths:
       responses:
         "200": { description: Authenticated user }
         "401": { description: Authentication required }
+  /organizations:
+    get:
+      summary: List approved public organizations
+      responses:
+        "200": { description: Organization directory }
+  /organizations/onboard:
+    post:
+      summary: Submit an organization onboarding request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/OrganizationOnboarding" }
+      responses:
+        "201": { description: Organization onboarding submitted }
+        "400": { description: Invalid onboarding request }
+  /organizations/{organizationId}:
+    get:
+      summary: Get a public organization profile
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Organization profile }
+        "404": { description: Organization not found }
+  /projects:
+    get:
+      summary: List public projects and humanitarian initiatives
+      responses:
+        "200": { description: Project directory }
+  /partnerships:
+    get:
+      summary: List public partnership opportunities
+      responses:
+        "200": { description: Partnership opportunities }
+  /partnerships/requests:
+    post:
+      summary: Submit a partnership introduction request
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PartnershipRequest" }
+      responses:
+        "201": { description: Partnership request created }
+        "401": { description: Authentication required }
+  /funding/intake:
+    post:
+      summary: Submit a donation or voluntary grant intent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FundingIntent" }
+      responses:
+        "201": { description: Funding intent created }
+        "400": { description: Invalid funding intent }
+  /funding/me:
+    get:
+      summary: List funding records for the authenticated user
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Funding records }
+        "401": { description: Authentication required }
+  /impact:
+    get:
+      summary: List published impact summaries
+      responses:
+        "200": { description: Public impact summaries }
   /membership/applications:
     post:
       summary: Submit membership application
@@ -86,6 +158,36 @@ components:
         jurisdiction: { type: string, minLength: 2, maxLength: 120 }
         interest_area: { type: string, maxLength: 120 }
         purpose: { type: string, minLength: 20, maxLength: 5000 }
+    OrganizationOnboarding:
+      type: object
+      required: [name, type, country, region, primary_contact_email, mission]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 240 }
+        type: { type: string, maxLength: 100 }
+        country: { type: string, minLength: 2, maxLength: 120 }
+        region: { type: string, maxLength: 80 }
+        official_website: { type: string, format: uri }
+        primary_contact_email: { type: string, format: email }
+        mission: { type: string, minLength: 20, maxLength: 5000 }
+    PartnershipRequest:
+      type: object
+      required: [organization_id, request_type, description]
+      properties:
+        organization_id: { type: string }
+        request_type: { type: string, maxLength: 100 }
+        description: { type: string, minLength: 10, maxLength: 5000 }
+    FundingIntent:
+      type: object
+      required: [funding_type, purpose]
+      properties:
+        funding_type:
+          type: string
+          enum: [voluntary_donation, restricted_donation, voluntary_grant, institutional_grant, sponsorship, in_kind, emergency_support]
+        amount: { type: number, minimum: 0 }
+        currency: { type: string, minLength: 3, maxLength: 10 }
+        purpose: { type: string, minLength: 10, maxLength: 5000 }
+        project_id: { type: string }
+        organization_id: { type: string }
     Request:
       type: object
       required: [request_type, subject, description]
