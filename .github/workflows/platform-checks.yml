@@ -1,0 +1,39 @@
+name: PMA Platform Checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify required files
+        shell: bash
+        run: |
+          set -e
+          test -f index.html
+          test -f style.css
+          test -f app.js
+          test -f api/openapi.yaml
+          test -f db/001_initial.sql
+          test -f db/002_entity_network.sql
+          test -f db/003_global_network.sql
+          test -f db/004_funding.sql
+          test -f db/005_global_operations.sql
+          test -f .env.example
+      - name: Check for obvious credential patterns
+        shell: bash
+        run: |
+          if grep -RniE 'BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{20,}|sk_live_[A-Za-z0-9]+' . --exclude-dir=.git; then
+            echo "Potential secret material detected."
+            exit 1
+          fi
+      - name: Check HTML entry points
+        shell: bash
+        run: |
+          for f in index.html global.html global-directory.html donate.html apply.html login.html dashboard.html portal.html admin.html command-center.html; do
+            test -f "$f"
+          done
